@@ -1,0 +1,27 @@
+---
+- name: "Clean up"
+  hosts: "all"
+  gather_facts: true
+  tasks:
+    - name: "Load the defaults"
+      ansible.builtin.include_vars:
+        dir: "../../defaults"
+
+    - name: "Check if the docker-compose file exists."
+      ansible.builtin.stat:
+        path: "{{ sonarqube_config_path | expanduser | realpath }}/docker-compose.yml"
+      register: "docker_compose_file"
+
+    - name: "Remove docker-compose."
+      community.docker.docker_compose:
+        project_src: "{{ sonarqube_config_path | expanduser | realpath }}/"
+        build: false
+        state: "absent"
+      when: "docker_compose_file.stat.exists"
+      become: false
+
+    - name: "Remove the docker-compose file"
+      ansible.builtin.file:
+        path: "{{ sonarqube_config_path | expanduser | realpath }}/docker-compose.yml"
+        state: "absent"
+      when: "docker_compose_file.stat.exists"

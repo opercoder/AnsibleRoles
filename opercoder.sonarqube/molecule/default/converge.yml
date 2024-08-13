@@ -1,0 +1,5 @@
+---
+- name: "Converge"
+  hosts: "sonarqube_group"
+  roles:
+    - role: "laurivan.sonarqube"

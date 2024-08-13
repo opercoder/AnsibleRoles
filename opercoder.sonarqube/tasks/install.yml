@@ -1,0 +1,7 @@
+---
+- name: "SONARQUBE | Ensure sonarqube is running"
+  community.docker.docker_compose_v2:
+    project_src: "{{ sonarqube_config_path | expanduser | realpath }}"
+    build: never
+  tags:
+    - "sonarqube_install"

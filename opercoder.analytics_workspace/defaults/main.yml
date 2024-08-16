@@ -1,0 +1,3 @@
+---
+# defaults file for opercoder.analytics_workspace
+aw_tar_file: /root/release-1.28.1.tar

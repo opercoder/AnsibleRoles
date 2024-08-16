@@ -1,2 +1,30 @@
 ---
 # tasks file for opercoder.analytics_workspace
+
+- name: Ensure vm.max_map_count is set to 262144
+  lineinfile:
+    path: /etc/sysctl.conf
+    regexp: '^vm.max_map_count'
+    line: 'vm.max_map_count = 262144'
+    state: present
+
+- name: Apply sysctl settings
+  command: sysctl -p
+
+- name: Install requirements
+  apt:
+    name:
+    - docker.io
+    - docker-compose
+    state: present
+
+- name: Install Analytics Workspace
+  shell: |
+    mkdir -p /opt/aw/app
+    mv {{ aw_tar_path }}/{{ aw_tar_filename }} /opt/aw/app
+    cd /opt/aw/app
+    tar -xvf {{ aw_tar_filename }}
+    cp .env.dist .env
+    chmod +x install.sh
+    ./install.sh
+

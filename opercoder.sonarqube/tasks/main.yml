@@ -1,0 +1,11 @@
+---
+
+- name: "SONARQUBE | Configure"
+  ansible.builtin.import_tasks: "config.yml"
+  tags:
+    - "sonarqube_configure"
+
+- name: "SONARQUBE | Install"
+  ansible.builtin.import_tasks: "install.yml"
+  tags:
+    - "sonarqube_install"

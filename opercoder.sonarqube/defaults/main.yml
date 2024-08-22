@@ -1,0 +1,31 @@
+---
+
+## General
+sonarqube_image: "sonarqube:community"
+sonarqube_db_image: "postgres:12"
+
+sonarqube_http_port: 9000
+
+# Limits
+sonarqube_vm_max_map_count: 524288
+sonarqube_fs_file_max: 131072
+sonarqube_nofile: 131072
+sonarqube_nproc: 8192
+
+# Sonarqube paths
+sonarqube_root_path: "/var/local"
+sonarqube_config_path: "{{ sonarqube_root_path }}/conf/sonarqube"
+
+sonarqube_db_user: "integer005_changeme"
+sonarqube_db_password: "integer005_changeme"
+
+# Add other paths here to make sure they're created automatically
+#
+sonarqube_skeleton_paths:
+  - "{{ sonarqube_config_path }}"
+
+# Add more templates to be copied into the config
+sonarqube_configuration_files:
+  - "docker-compose.yml"
+  - "env.sonarqube.conf"
+  - "env.db.conf"

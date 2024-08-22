@@ -1,0 +1,25 @@
+---
+
+galaxy_info:
+  author: "Laur Ivan (laur.ivan@gmail.com)"
+  namespace: "laurivan"
+  role_name: "sonarqube"
+  description: "Sonarqube Role"
+  min_ansible_version: "2.4"
+  min_ansible_container_version: "2.4"
+  license: "MIT"
+  galaxy_tags:
+    - "sonarqube"
+    - "testing"
+    - "security"
+  platforms:
+    - name: "Debian"
+      versions:
+        - "bullseye"
+        - "buster"
+
+    - name: "Ubuntu"
+      versions:
+        - "bionic"
+        - "focal"
+        - "jammy"

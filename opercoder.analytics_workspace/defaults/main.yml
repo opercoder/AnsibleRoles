@@ -1,0 +1,22 @@
+---
+# defaults file for opercoder.analytics_workspace
+
+# Переменные дистрибутива
+aw_tar_path: /root/
+aw_version: 1.28.1
+aw_tar_filename: "release-{{ aw_version }}.tar"
+
+
+# URL для доступа к приложению
+frontend_url: https://analytics-workspace.fors.ru
+frontend_port: 8088
+
+# Расположение приложения в ОС
+distr_dir: /opt/aw/app/
+with_versions_file: "{{ distr_dir }}/with_ansible_installed.info"
+
+# Устанавливаемые модули
+install_packages:
+  - docker
+  - docker-compose
+  - nginx

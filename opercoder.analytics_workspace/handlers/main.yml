@@ -1,0 +1,4 @@
+---
+# handlers file for opercoder.analytics_workspace
+- name: restart nginx
+  service: name=nginx state=restarted

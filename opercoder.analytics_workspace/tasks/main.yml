@@ -1,0 +1,101 @@
+---
+# tasks file for opercoder.analytics_workspace
+
+- name: Выставляем значение vm.max_map_count в 262144 для clickhouse
+  lineinfile:
+    path: /etc/sysctl.conf
+    regexp: '^vm.max_map_count'
+    line: 'vm.max_map_count = 262144'
+    state: present
+
+- name: Применение настроек
+  command: sysctl -p
+
+- name: Установка требуемых модулей
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  loop: "{{ install_packages }}"
+  ignore_errors: true
+
+- name: Проверяем установлена ли уже эта версия
+  command: grep {{ aw_tar_filename }} {{ with_versions_file }}
+  register: grep_result
+  ignore_errors: true
+
+- name: Распаковываем Tar архив
+  shell: |
+    mkdir -p {{ distr_dir }}
+    mv {{ aw_tar_path }}/{{ aw_tar_filename }} {{ distr_dir }}
+    cd {{ distr_dir }}
+    tar -xvf {{ aw_tar_filename }}
+    cp '.env.dist' '.env'
+    mv {{ aw_tar_filename }} {{ aw_tar_path }}
+    echo "{{ aw_tar_filename }}" >> {{ with_versions_file }}
+  when: grep_result.failed==True
+
+- name: Правим файл конфигурации приложения
+  lineinfile:
+    path: "{{ distr_dir }}/.env"
+    regexp: '^FRONTEND_URL'
+    line: 'FRONTEND_URL={{ frontend_url }}'
+    state: present
+
+- name: Правим файл конфигурации приложения
+  lineinfile:
+    path: "{{ distr_dir }}/.env"
+    regexp: '^AW_FRONTEND_HTTP_PORT'
+    line: 'AW_FRONTEND_HTTP_PORT={{ frontend_port }}'
+    state: present
+
+- name: Получаем текущую установленную версию
+  shell: docker images | awk '{print $2}' | grep "^[0-9].*[0-9]$" | sort -u
+  register: distr_docker_version
+  ignore_errors: true
+
+- name: Загруженные версии образов приложения
+  debug: msg="{{ distr_docker_version.stdout }}"
+
+- name: Загружаем образы в локальный registry из архива
+  shell: |
+    cd {{ distr_dir }}
+    chmod +x install.sh
+    ./install.sh
+  when: distr_docker_version.stdout.find(aw_version) == -1
+
+- name: Создание структуры каталогов
+  shell: |
+    cd /opt/aw/app
+    chmod +x create_project_dirs.sh
+    ./create_project_dirs.sh
+
+- name: Стартуем приложение
+  shell: |
+    cd /opt/aw/app
+    docker-compose up -d
+    docker-compose exec backend php yii migrate --interactive=0
+    docker-compose exec backend php yii run-code-migrations
+    docker-compose exec etl-api /app/manage migrate
+
+- name: Создаем директорию для сертификатов SSL
+  command: mkdir -p /etc/nginx/certs
+
+- name: Удаляем конфигурацию nginx по умолчанию
+  command: rm -f /etc/nginx/sites-enabled/default
+
+- name: Копирование сертификатов SSL
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - src: fullchain.pem
+      dest: /etc/nginx/certs/fullchain.pem
+    - src: privkey.pem
+      dest: /etc/nginx/certs/privkey.pem
+    - src: aw.conf
+      dest: /etc/nginx/conf.d/aw.conf
+  notify: restart nginx

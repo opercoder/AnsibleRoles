@@ -1,15 +1,15 @@
 ---
 - name: Show OS Version
-  debug:
-    msg:
-      - "{{ ansible_facts['os_family'] + '-' + ansible_facts['distribution_major_version'] }}.yml"
-      - "{{ ansible_facts['os_family'] }}.yml"
+  shell: |
+    cat /etc/os-release | grep PRETTY_NAME | cut -d= -f2 | tr -d \" | cut -d ' ' -f1
+  register: os_name
 
 - name: Include OS-specific variables.
   include_vars: "{{ item }}"
   with_first_found:
     - "{{ ansible_facts['os_family'] + '-' + ansible_facts['distribution_major_version'] }}.yml"
     - "{{ ansible_facts['os_family'] }}.yml"
+    - "{{ os_name.stdout }}.yml" 
 
 - name: Set the ntp_driftfile variable.
   set_fact:

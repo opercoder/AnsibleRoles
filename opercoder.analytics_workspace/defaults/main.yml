@@ -19,4 +19,3 @@ with_versions_file: "{{ distr_dir }}/with_ansible_installed.info"
 install_packages:
   - docker
   - docker-compose
-  - nginx

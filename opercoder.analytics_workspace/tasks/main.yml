@@ -77,25 +77,3 @@
     docker-compose exec backend php yii migrate --interactive=0
     docker-compose exec backend php yii run-code-migrations
     docker-compose exec etl-api /app/manage migrate
-
-- name: Создаем директорию для сертификатов SSL
-  command: mkdir -p /etc/nginx/certs
-
-- name: Удаляем конфигурацию nginx по умолчанию
-  command: rm -f /etc/nginx/sites-enabled/default
-
-- name: Копирование сертификатов SSL
-  copy:
-    src: "{{ item.src }}"
-    dest: "{{ item.dest }}"
-    owner: root
-    group: root
-    mode: 0644
-  with_items:
-    - src: fullchain.pem
-      dest: /etc/nginx/certs/fullchain.pem
-    - src: privkey.pem
-      dest: /etc/nginx/certs/privkey.pem
-    - src: aw.conf
-      dest: /etc/nginx/conf.d/aw.conf
-  notify: restart nginx

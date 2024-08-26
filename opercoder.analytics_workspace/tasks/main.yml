@@ -24,7 +24,7 @@
   register: grep_result
   ignore_errors: true
 
-- name: Распаковываем Tar архив
+- name: Распаковываем Tar архив, если отсутствует нужная версия
   shell: |
     mkdir -p {{ distr_dir }}
     mv {{ aw_tar_path }}/{{ aw_tar_filename }} {{ distr_dir }}
@@ -34,6 +34,12 @@
     mv {{ aw_tar_filename }} {{ aw_tar_path }}
     echo "{{ aw_tar_filename }}" >> {{ with_versions_file }}
   when: grep_result.failed==True
+
+- name: Останавливаем приложение
+  shell: |
+    cd {{ distr_dir }}
+    docker-compose down -v
+  ignore_errors: true
 
 - name: Правим файл конфигурации приложения
   lineinfile:

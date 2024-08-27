@@ -1,0 +1,7 @@
+---
+zabbix_agent_version: 6.4
+zabbix_server: zabbix-okpis.fors.ru
+
+# Устанавливаемые модули
+install_packages:
+  - wget

@@ -8,7 +8,7 @@ aw_tar_filename: "release-{{ aw_version }}.tar"
 
 
 # URL для доступа к приложению
-frontend_url: https://analytics-workspace.fors.ru
+frontend_url: https://analytics-workspace.DOMAIN.ru
 frontend_port: 8088
 
 # Расположение приложения в ОС

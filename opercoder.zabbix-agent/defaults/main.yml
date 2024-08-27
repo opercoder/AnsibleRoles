@@ -1,6 +1,6 @@
 ---
 zabbix_agent_version: 6.4
-zabbix_server: zabbix-okpis.fors.ru
+zabbix_server: zabbix-server.DOMAIN.ru
 
 # Устанавливаемые модули
 install_packages:

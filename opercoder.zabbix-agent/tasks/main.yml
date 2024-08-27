@@ -1,23 +1,17 @@
 ---
-
-# tasks file for opercoder.zabbix-agent
 - name: get os name
-  shell: |
-    cat /etc/os-release | grep PRETTY_NAME | cut -d= -f2 | tr -d \" | cut -d ' ' -f1
+  shell: cat /etc/os-release | grep PRETTY_NAME | cut -d= -f2 | tr -d \" | cut -d ' ' -f1
   register: os_name
 
 - name: get os version
-  shell: |
-    cat /etc/os-release | grep VERSION_ID | cut -d= -f2 | tr -d \" | cut -d_ -f1
+  shell: cat /etc/os-release | grep VERSION_ID | cut -d= -f2 | tr -d \" | cut -d ' ' -f1 | cut -d_ -f1
   register: os_version
 
 - name: check
   debug: msg="Найдена ОС {{ os_name.stdout }}, версия {{ os_version.stdout }}"
 
-- name: Include OS-specific variables.
-  include_vars: "{{ item }}"
-  with_first_found:
-    - "{{ os_name.stdout }}-{{ os_version.stdout }}.yml"
+- name: include OS-specific variables
+  include_vars: "{{ os_name.stdout }}-{{ os_version.stdout }}.yml"
 
 - name: Установка требуемых модулей
   apt:
@@ -26,26 +20,24 @@
     update_cache: yes
   loop: "{{ install_packages }}"
   ignore_errors: true
-  when: os_name.stdout == "Astra"
 
 - name: Download
-  command: wget {{ url_download }}
-  when: os_name.stdout == "Astra"
+  command: "wget {{ url_download }}"
 
 - name: apt update
-  command: apt update -y
+  command: apt -y update
 
 - name: apt install
-  command: apt install -y zabbix-agent 
+  command: apt -y install zabbix-agent
   ignore_errors: true
 
-- name: Set zabbix-server
-  ansible.builtin.lineinfile:
-    path: /etc/zabbix/zabbix_agentd.conf
-    regexp: '^Server='
+- name: change config
+  lineinfile:
+    dest: /etc/zabbix/zabbix_agentd.conf
+    regexp: "^Server="
     line: "Server={{ zabbix_server }}"
 
-- name: Restart service in all cases
-  ansible.builtin.service:
+- name: restart agent
+  service:
     name: zabbix-agent
     state: restarted

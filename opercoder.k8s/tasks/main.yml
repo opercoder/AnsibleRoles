@@ -1,0 +1,19 @@
+---
+# tasks file for opercoder.k8s
+
+- name: check free port for controlplane
+  shell: ss -tlnp | grep ":{{ k8s_controlpane_port }} " | wc -l
+  register: check_port
+  tags: ['always']
+
+- name: tasks for installing requirements
+  include_tasks:
+    file: requirements.yml
+
+- name: tasks for installing k8s
+  include_tasks:
+    file: install.yml
+    apply:
+      tags: ['install']
+  tags: ['install']
+  when: "'install' in ansible_run_tags"

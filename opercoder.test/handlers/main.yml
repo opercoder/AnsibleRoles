@@ -1,6 +1,0 @@
----
-# handlers file for opercoder.test
-- name: reload sshd
-  service:
-    name: sshd
-    state: reloaded

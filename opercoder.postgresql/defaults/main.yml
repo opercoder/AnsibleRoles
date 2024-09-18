@@ -1,0 +1,7 @@
+---
+# defaults file for opercoder.postgresql
+postgresql_version: "14.8"
+postgresql_install_dir: "/usr/local/pgsql"
+postgresql_data_dir: "/usr/local/pgsql/data"
+postgresql_user: "postgres"
+postgresql_group: "postgres"

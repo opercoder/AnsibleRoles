@@ -1,0 +1,107 @@
+---
+# tasks file for opercoder.postgresql
+# my_ansible_role/tasks/main.yml
+
+- name: Install dependencies
+  apt:
+    name:
+      - build-essential
+      - libreadline-dev
+      - zlib1g-dev
+      - flex
+      - bison
+      - git
+      - wget
+      - libxml2-dev
+      - libxslt1-dev
+      - libssl-dev
+      - libcurl4-openssl-dev
+    state: present
+  become: yes
+
+- name: Download PostgreSQL source
+  get_url:
+    url: "https://ftp.postgresql.org/pub/source/v{{ postgresql_version }}/postgresql-{{ postgresql_version }}.tar.gz"
+    dest: "/tmp/postgresql-{{ postgresql_version }}.tar.gz"
+  become: yes
+
+- name: Extract PostgreSQL source
+  unarchive:
+    src: "/tmp/postgresql-{{ postgresql_version }}.tar.gz"
+    dest: "/tmp/"
+    remote_src: yes
+  become: yes
+
+- name: Create PostgreSQL user and group
+  user:
+    name: "{{ postgresql_user }}"
+    group: "{{ postgresql_group }}"
+    system: yes
+    create_home: yes
+    shell: /bin/bash
+  become: yes
+
+- name: Create PostgreSQL install directory
+  file:
+    path: "{{ postgresql_install_dir }}"
+    state: directory
+    owner: "{{ postgresql_user }}"
+    group: "{{ postgresql_group }}"
+    mode: '0755'
+  become: yes
+
+- name: Configure PostgreSQL (./configure)
+  command: "./configure --prefix={{ postgresql_install_dir }}"
+# --datadir={{ postgresql_data_dir }}"
+  args:
+    chdir: "/tmp/postgresql-{{ postgresql_version }}"
+  become: yes
+
+- name: Compile PostgreSQL (make)
+  command: "make"
+  args:
+    chdir: "/tmp/postgresql-{{ postgresql_version }}"
+  become: yes
+
+- name: Install PostgreSQL (make install)
+  command: "make install"
+  args:
+    chdir: "/tmp/postgresql-{{ postgresql_version }}"
+  become: yes
+
+- name: Make Dir
+  shell: |
+    mkdir -p /usr/local/pgsql/data
+    chown postgres /usr/local/pgsql/data
+
+- name: Initialize the database
+  command: "{{ postgresql_install_dir }}/bin/initdb -D {{ postgresql_data_dir }}"
+  become: yes
+  become_user: postgres
+
+- name: Create systemd service file for PostgreSQL
+  copy:
+    dest: /etc/systemd/system/postgresql.service
+    content: |
+      [Unit]
+      Description=PostgreSQL Database Server
+      After=network.target
+
+      [Service]
+      Type=simple
+      User={{ postgresql_user }}
+      Group={{ postgresql_group }}
+      ExecStart={{ postgresql_install_dir }}/bin/postgres -D {{ postgresql_data_dir }} -c config_file={{ postgresql_data_dir }}/postgresql.conf
+      ExecStop=/bin/kill -s TERM $MAINPID
+      Restart=always
+
+      [Install]
+      WantedBy=multi-user.target
+  become: yes
+
+- name: Start and enable PostgreSQL service
+  systemd:
+    name: postgresql
+    state: started
+    enabled: yes
+  become: yes
